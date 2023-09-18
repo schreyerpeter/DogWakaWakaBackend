@@ -5,10 +5,15 @@ import { Appointment } from './appointment.schema';
 import { getModelToken } from '@nestjs/mongoose';
 import { User } from '../users/user.schema';
 import { Dog } from '../dogs/dog.schema';
+import { Response } from 'express';
 
 describe('AppointmentsController', () => {
   let appointmentsController: AppointmentsController;
   let appointmentsService: AppointmentsService;
+
+  const res = {} as unknown as Response;
+  res.json = jest.fn();
+  res.status = jest.fn(() => res);
 
   beforeEach(async () => {
     function mockAppointmentModel(dto: any) {
@@ -45,11 +50,14 @@ describe('AppointmentsController', () => {
       jest.spyOn(appointmentsService, 'create').mockResolvedValue(result);
 
       expect(
-        await appointmentsController.create({
-          startTime: new Date().toString(),
-          client: new User(),
-          dog: null,
-        }),
+        await appointmentsController.create(
+          {
+            startTime: new Date().toString(),
+            client: new User(),
+            dog: null,
+          },
+          res,
+        ),
       ).toBe(result);
     });
   });
@@ -59,7 +67,7 @@ describe('AppointmentsController', () => {
       const result = [new Appointment()];
       jest.spyOn(appointmentsService, 'findAll').mockResolvedValue(result);
 
-      expect(await appointmentsController.findAll()).toBe(result);
+      expect(await appointmentsController.findAll(res)).toBe(result);
     });
   });
 
@@ -72,7 +80,7 @@ describe('AppointmentsController', () => {
       };
       jest.spyOn(appointmentsService, 'findOne').mockResolvedValue(result);
 
-      expect(await appointmentsController.findOne('appointment_id')).toBe(
+      expect(await appointmentsController.findOne('appointment_id', res)).toBe(
         result,
       );
     });
@@ -87,7 +95,7 @@ describe('AppointmentsController', () => {
       };
       jest.spyOn(appointmentsService, 'delete').mockResolvedValue(result);
 
-      expect(await appointmentsController.delete('appointment_id')).toBe(
+      expect(await appointmentsController.delete('appointment_id', res)).toBe(
         result,
       );
     });
